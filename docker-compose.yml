@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: postgres-prospectscore
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=prospectscore
+      - POSTGRES_USER=prospectscore
+      - POSTGRES_PASSWORD=2aimmobilier2025
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: prospectscore-backend
+    restart: always
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_URL=postgresql://prospectscore:2aimmobilier2025@db:5432/prospectscore
+      - JWT_SECRET=2a-immo-secret-key-change-after-install
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    container_name: prospectscore-frontend
+    restart: always
+    ports:
+      - "3003:3000"
+    environment:
+      - REACT_APP_API_URL=https://score.2a-immobilier.com/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules

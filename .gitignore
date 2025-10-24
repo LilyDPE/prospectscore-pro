@@ -1,0 +1,29 @@
+# Secrets et config
+.env
+*.pem
+*.key
+id_rsa*
+
+# Base de données
+*.sqlite
+*.db
+
+# Logs
+*.log
+logs/
+import_historique.log
+
+# Node modules
+node_modules/
+__pycache__/
+*.pyc
+
+# Docker volumes
+postgres_data/
+
+# Système
+.DS_Store
+Thumbs.db
+
+# Backups
+*.backup

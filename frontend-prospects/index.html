@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProspectScore Pro - Prospects DVF</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+            color: #04264b;
+        }
+        
+        .header {
+            background: #04264b;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        
+        .container { max-width: 1800px; margin: 0 auto; padding: 20px; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 { font-size: 14px; color: #666; margin-bottom: 10px; }
+        .stat-card .value { font-size: 32px; font-weight: bold; color: #04264b; }
+        
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .filter-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .filter-section:last-of-type { border-bottom: none; }
+        
+        .filter-section h3 {
+            font-size: 14px;
+            color: #04264b;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .filter-group small {
+            display: block;
+            color: #999;
+            font-size: 11px;
+            margin-top: 3px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary { background: #95c122; color: white; }
+        .btn-primary:hover { background: #7da51a; }
+        .btn-secondary { background: #f0f0f0; color: #04264b; }
+        
+        .prospects-table {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse;
+            min-width: 1600px;
+        }
+        thead { background: #f8f9fa; }
+        
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 2px solid #e0e0e0;
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        
+        tbody tr:hover { background: #f8f9fa; }
+        
+        .score-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .score-high { background: #d4edda; color: #155724; }
+        .score-medium { background: #fff3cd; color: #856404; }
+        .score-low { background: #f8d7da; color: #721c24; }
+        
+        .dpe-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+            color: white;
+        }
+        
+        .dpe-A { background: #009036; }
+        .dpe-B { background: #4db847; }
+        .dpe-C { background: #c3d500; color: #333; }
+        .dpe-D { background: #ffec00; color: #333; }
+        .dpe-E { background: #fcb900; }
+        .dpe-F { background: #f36b21; }
+        .dpe-G { background: #ed1c24; }
+        
+        .proprio-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .proprio-sci { background: #e3f2fd; color: #1976d2; }
+        .proprio-pro { background: #fff3e0; color: #f57c00; }
+        .proprio-societe { background: #f3e5f5; color: #7b1fa2; }
+        .proprio-particulier { background: #f5f5f5; color: #666; }
+        
+        .distance-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .loading { text-align: center; padding: 40px; color: #666; }
+        
+        .text-muted { color: #999; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🎯 ProspectScore Pro - Prospects DVF</h1>
+            <p>Analyse des transactions immobilières</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Transactions</h3>
+                <div class="value" id="stat-total">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Maisons</h3>
+                <div class="value" id="stat-maisons">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Appartements</h3>
+                <div class="value" id="stat-appartements">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Prix Moyen</h3>
+                <div class="value" id="stat-prix">-</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-section">
+                <h3>🗺️ Recherche Géographique</h3>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>Ville / Adresse</label>
+                        <input type="text" id="filter-location" placeholder="Ex: Dieppe, Rouen...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Rayon (km)</label>
+                        <input type="number" id="filter-radius" value="10" placeholder="10">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="searchByLocation()">📍 Chercher autour de cette ville</button>
+            </div>
+            
+            <div class="filter-section">
+                <h3>🔍 Filtres Standards</h3>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>Département</label>
+                        <select id="filter-dept">
+                            <option value="">Tous</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Code Postal</label>
+                        <input type="text" id="filter-cp" placeholder="Ex: 76200">
+                    </div>
+                    <div class="filter-group">
+                        <label>Commune</label>
+                        <input type="text" id="filter-commune" placeholder="Ex: Dieppe">
+                    </div>
+                    <div class="filter-group">
+                        <label>Type</label>
+                        <select id="filter-type">
+                            <option value="">Tous</option>
+                            <option value="Maison">Maison</option>
+                            <option value="Appartement">Appartement</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Type Propriétaire</label>
+                        <select id="filter-proprio">
+                            <option value="">Tous</option>
+                            <option value="Potentiel professionnel">Potentiel professionnel</option>
+                            <option value="Société probable">Société probable</option>
+                            <option value="Particulier probable">Particulier probable</option>
+                            <option value="Particulier">Particulier</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Score Min</label>
+                        <input type="number" id="filter-score-min" placeholder="Ex: 50">
+                    </div>
+                    <div class="filter-group">
+                        <label>Surface Min (m²)</label>
+                        <input type="number" id="filter-surface-min" placeholder="Ex: 100">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h3>📅 Filtres Temporels</h3>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>Acheté avant le</label>
+                        <input type="date" id="filter-date-avant" value="2023-12-31">
+                        <small>Exclure les achats récents</small>
+                    </div>
+                    <div class="filter-group">
+                        <label>Acheté après le</label>
+                        <input type="date" id="filter-date-apres">
+                        <small>Optionnel</small>
+                    </div>
+                    <div class="filter-group">
+                        <label>Ancienneté min (années)</label>
+                        <select id="filter-anciennete">
+                            <option value="">Tous</option>
+                            <option value="1" selected>Au moins 1 an</option>
+                            <option value="2">Au moins 2 ans</option>
+                            <option value="3">Au moins 3 ans</option>
+                            <option value="5">Au moins 5 ans</option>
+                            <option value="10">Au moins 10 ans</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="searchProspects()">🔍 Rechercher</button>
+                    <button class="btn btn-secondary" onclick="resetFilters()">🔄 Réinitialiser</button>
+                    <button class="btn btn-secondary" onclick="exportCSV()">📥 Export CSV</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="prospects-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Score</th>
+                        <th>Adresse</th>
+                        <th>CP</th>
+                        <th>Commune</th>
+                        <th>Dept</th>
+                        <th>Type</th>
+                        <th>Propriétaire</th>
+                        <th>🔍 Indices</th>
+                        <th>Surface</th>
+                        <th>Pièces</th>
+                        <th>Prix</th>
+                        <th>Prix/m²</th>
+                        <th>DPE</th>
+                        <th>Date Achat</th>
+                        <th>Ancienneté</th>
+                        <th id="distance-header" style="display:none;">Distance</th>
+                    </tr>
+                </thead>
+                <tbody id="prospects-tbody">
+                    <tr><td colspan="15" class="loading">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="pagination" id="pagination"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'https://score.2a-immobilier.com';
+        let currentPage = 0;
+        const limit = 50;
+        let isRadiusSearch = false;
+        let currentFilters = {};
+        
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        document.getElementById('filter-date-avant').value = oneYearAgo.toISOString().split('T')[0];
+        
+        async function loadStats() {
+            const res = await fetch(`${API_URL}/api/public/stats`);
+            const data = await res.json();
+            
+            document.getElementById('stat-total').textContent = data.total.toLocaleString();
+            document.getElementById('stat-maisons').textContent = (data.par_type.Maison || 0).toLocaleString();
+            document.getElementById('stat-appartements').textContent = (data.par_type.Appartement || 0).toLocaleString();
+            document.getElementById('stat-prix').textContent = Math.round(data.prix_moyen).toLocaleString() + ' €';
+        }
+        
+        async function loadDepartements() {
+            const res = await fetch(`${API_URL}/api/public/departements`);
+            const data = await res.json();
+            
+            const select = document.getElementById('filter-dept');
+            data.departements.forEach(d => {
+                const option = document.createElement('option');
+                option.value = d.code;
+                option.textContent = `${d.code} (${d.count})`;
+                select.appendChild(option);
+            });
+        }
+        
+        function calculateAnciennete(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const years = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25));
+            const months = Math.floor((diffMs % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
+            
+            if (years > 0) return `${years} an${years > 1 ? 's' : ''}`;
+            if (months > 0) return `${months} mois`;
+            return '< 1 mois';
+        }
+        
+        function getProprietaireBadge(type) {
+            if (!type || type === 'Particulier' || type === 'Particulier probable') {
+                return '<span class="proprio-badge proprio-particulier">Particulier probable</span>';
+            }
+            
+            if (type === 'Potentiel professionnel') {
+                return '<span class="proprio-badge proprio-pro">Potentiel professionnel</span>';
+            }
+            
+            if (type === 'Société probable') {
+                return '<span class="proprio-badge proprio-societe">Société probable</span>';
+            }
+            
+            return `<span class="proprio-badge proprio-sci">${type}</span>`;
+        }
+        
+        async function searchByLocation() {
+            const location = document.getElementById('filter-location').value.trim();
+            const radius = parseFloat(document.getElementById('filter-radius').value) || 10;
+            
+            if (!location) {
+                alert('Veuillez entrer une ville ou une adresse');
+                return;
+            }
+            
+            const geoRes = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(location)}&limit=1`);
+            const geoData = await geoRes.json();
+            
+            if (!geoData.features || geoData.features.length === 0) {
+                alert('Ville non trouvée');
+                return;
+            }
+            
+            const coords = geoData.features[0].geometry.coordinates;
+            const lat = coords[1];
+            const lon = coords[0];
+            
+            const res = await fetch(`${API_URL}/api/prospects/search-radius`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    latitude: lat,
+                    longitude: lon,
+                    radius_km: radius,
+                    limit: 500,
+                    sort_by: 'score'
+                })
+            });
+            
+            const data = await res.json();
+            isRadiusSearch = true;
+            displayProspects(data);
+        }
+        
+        async function searchProspects(page = 0) {
+            currentPage = page;
+            isRadiusSearch = false;
+            
+            const cp = document.getElementById('filter-cp').value.trim();
+            const commune = document.getElementById('filter-commune').value.trim();
+            const dateAvant = document.getElementById('filter-date-avant').value;
+            const dateApres = document.getElementById('filter-date-apres').value;
+            const anciennete = document.getElementById('filter-anciennete').value;
+            const proprioType = document.getElementById('filter-proprio').value;
+            
+            let dateAvantFinal = dateAvant;
+            if (anciennete) {
+                const d = new Date();
+                d.setFullYear(d.getFullYear() - parseInt(anciennete));
+                dateAvantFinal = d.toISOString().split('T')[0];
+            }
+            
+            currentFilters = {
+                type_local: document.getElementById('filter-type').value || undefined,
+                score_min: parseInt(document.getElementById('filter-score-min').value) || undefined,
+                surface_min: parseFloat(document.getElementById('filter-surface-min').value) || undefined,
+                departements: document.getElementById('filter-dept').value ? [document.getElementById('filter-dept').value] : undefined,
+                codes_postaux: cp ? [cp] : undefined,
+                communes: commune ? [commune] : undefined,
+                date_avant: dateAvantFinal || undefined,
+                date_apres: dateApres || undefined,
+                proprietaire_type: proprioType || undefined,
+                limit,
+                offset: page * limit
+            };
+            
+            const res = await fetch(`${API_URL}/api/prospects/search`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentFilters)
+            });
+            
+            const data = await res.json();
+            displayProspects(data);
+        }
+        
+        function displayProspects(data) {
+            const tbody = document.getElementById('prospects-tbody');
+            const distanceHeader = document.getElementById('distance-header');
+            tbody.innerHTML = '';
+            
+            distanceHeader.style.display = isRadiusSearch ? '' : 'none';
+            
+            if (data.prospects.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${isRadiusSearch ? 15 : 14}" class="loading">Aucun résultat</td></tr>`;
+                return;
+            }
+            
+            data.prospects.forEach(p => {
+                const scoreClass = p.score >= 55 ? 'score-high' : p.score >= 40 ? 'score-medium' : 'score-low';
+                const prixM2 = p.surface && p.surface > 0 ? Math.round(p.valeur / p.surface) : '-';
+                const dpeBadge = p.classe_dpe ? `<span class="dpe-badge dpe-${p.classe_dpe}">${p.classe_dpe}</span>` : '<span class="text-muted">-</span>';
+                const anciennete = calculateAnciennete(p.date_mutation);
+                const proprietaireBadge = getProprietaireBadge(p.proprietaire_type);
+                const distanceCell = isRadiusSearch ? `<td><span class="distance-badge">${p.distance_km} km</span></td>` : '';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><span class="score-badge ${scoreClass}">${p.score}</span></td>
+                        <td>${p.adresse || '-'}</td>
+                        <td>${p.code_postal}</td>
+                        <td>${p.commune}</td>
+                        <td><strong>${p.departement}</strong></td>
+                        <td>${p.type}</td>
+                        <td>${proprietaireBadge}</td>
+                        <td>${p.details_detection ? `<div style="font-size:11px;line-height:1.4;max-width:250px;">${p.details_detection.split(" • ").map(i => `• ${i}`).join("<br>")}</div>` : `<span class="text-muted">-</span>`}</td>
+                        <td>${p.surface ? Math.round(p.surface) + ' m²' : '-'}</td>
+                        <td>${p.pieces || '-'}</td>
+                        <td><strong>${Math.round(p.valeur).toLocaleString()} €</strong></td>
+                        <td>${prixM2 !== '-' ? prixM2.toLocaleString() + ' €' : '-'}</td>
+                        <td>${dpeBadge}</td>
+                        <td>${p.date_mutation ? new Date(p.date_mutation).toLocaleDateString('fr-FR') : '-'}</td>
+                        <td><strong>${anciennete}</strong></td>
+                        ${distanceCell}
+                    </tr>
+                `;
+            });
+            
+            if (!isRadiusSearch && data.total) {
+                const totalPages = Math.ceil(data.total / limit);
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = `
+                    <button class="btn btn-secondary" ${currentPage === 0 ? 'disabled' : ''} onclick="searchProspects(${currentPage - 1})">◀ Précédent</button>
+                    <span>Page ${currentPage + 1} / ${totalPages} (${data.total} résultats)</span>
+                    <button class="btn btn-secondary" ${currentPage >= totalPages - 1 ? 'disabled' : ''} onclick="searchProspects(${currentPage + 1})">Suivant ▶</button>
+                `;
+            } else {
+                document.getElementById('pagination').innerHTML = `<span>${data.total} résultats trouvés</span>`;
+            }
+        }
+        
+        function resetFilters() {
+            document.getElementById('filter-dept').value = '';
+            document.getElementById('filter-cp').value = '';
+            document.getElementById('filter-commune').value = '';
+            document.getElementById('filter-type').value = '';
+            document.getElementById('filter-proprio').value = '';
+            document.getElementById('filter-score-min').value = '';
+            document.getElementById('filter-surface-min').value = '';
+            document.getElementById('filter-location').value = '';
+            document.getElementById('filter-radius').value = '10';
+            
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+            document.getElementById('filter-date-avant').value = oneYearAgo.toISOString().split('T')[0];
+            document.getElementById('filter-date-apres').value = '';
+            document.getElementById('filter-anciennete').value = '1';
+            
+            searchProspects(0);
+        }
+        
+        function exportCSV() {
+            const dept = document.getElementById('filter-dept').value;
+            const scoreMin = document.getElementById('filter-score-min').value || 50;
+            const proprioType = document.getElementById('filter-proprio').value;
+            let url = `${API_URL}/api/prospects/export/csv?score_min=${scoreMin}`;
+            if (dept) url += `&departement=${dept}`;
+            if (proprioType) url += `&proprietaire_type=${encodeURIComponent(proprioType)}`;
+            window.open(url, '_blank');
+        }
+        
+        loadStats();
+        loadDepartements();
+        searchProspects(0);
+    </script>
+</body>
+</html>
+
+<script>
+// SYSTÈME COLLABORATIF
+let currentUser = localStorage.getItem('commercial_name') || prompt("Votre nom ?") || "Commercial";
+localStorage.setItem('commercial_name', currentUser);
+
+// Tracker la consultation d'un prospect
+function trackView(transactionId) {
+    fetch(`${API_URL}/api/collaboration/track-consultation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            transaction_id: transactionId,
+            commercial: currentUser,
+            action: 'vue'
+        })
+    });
+}
+
+// Afficher les badges collaboratifs
+function getCollaborationBadge(nbVus, actifs) {
+    let html = '';
+    
+    if (actifs && actifs.length > 0) {
+        const autres = actifs.filter(a => a.commercial !== currentUser);
+        if (autres.length > 0) {
+            html += `<span style="background:#ff5722;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-left:5px;" title="${autres.map(a => a.commercial).join(', ')} travaille dessus">🔴 EN COURS</span>`;
+        }
+    }
+    
+    if (nbVus > 1) {
+        html += `<span style="background:#9E9E9E;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-left:5px;" title="Vu par ${nbVus} commerciaux">👥 ${nbVus}</span>`;
+    }
+    
+    return html;
+}
+
+// Mettre à jour displayProspects pour inclure les badges
+// (à intégrer dans la fonction displayProspects existante)
+</script>
+
+<script>
+// SYSTÈME COLLABORATIF
+let currentUser = localStorage.getItem('commercial_name') || prompt("Votre nom ?") || "Commercial";
+localStorage.setItem('commercial_name', currentUser);
+
+// Tracker la consultation d'un prospect
+function trackView(transactionId) {
+    fetch(`${API_URL}/api/collaboration/track-consultation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            transaction_id: transactionId,
+            commercial: currentUser,
+            action: 'vue'
+        })
+    });
+}
+
+// Afficher les badges collaboratifs
+function getCollaborationBadge(nbVus, actifs) {
+    let html = '';
+    
+    if (actifs && actifs.length > 0) {
+        const autres = actifs.filter(a => a.commercial !== currentUser);
+        if (autres.length > 0) {
+            html += `<span style="background:#ff5722;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-left:5px;" title="${autres.map(a => a.commercial).join(', ')} travaille dessus">🔴 EN COURS</span>`;
+        }
+    }
+    
+    if (nbVus > 1) {
+        html += `<span style="background:#9E9E9E;color:white;padding:2px 6px;border-radius:8px;font-size:10px;margin-left:5px;" title="Vu par ${nbVus} commerciaux">👥 ${nbVus}</span>`;
+    }
+    
+    return html;
+}
+
+// Mettre à jour displayProspects pour inclure les badges
+// (à intégrer dans la fonction displayProspects existante)
+</script>
