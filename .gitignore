@@ -1,29 +1,32 @@
-# Secrets et config
-.env
-*.pem
-*.key
-id_rsa*
+# Base de données PostgreSQL (NE JAMAIS COMMITER)
+data/postgres/
 
-# Base de données
-*.sqlite
-*.db
+# Environnement
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Logs
 *.log
 logs/
-import_historique.log
-
-# Node modules
-node_modules/
-__pycache__/
-*.pyc
-
-# Docker volumes
-postgres_data/
-
-# Système
-.DS_Store
-Thumbs.db
-
-# Backups
-*.backup

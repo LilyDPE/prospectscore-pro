@@ -301,8 +301,7 @@ class PropensityToSellPredictor:
         """
         transactions = self.db.query(TransactionDVF).filter(
             TransactionDVF.score >= score_min,
-            TransactionDVF.duree_detention_estimee.isnot(None),
-            TransactionDVF.duree_detention_estimee >= 3  # Minimum 3 ans détention
+            # TransactionDVF.duree_detention_estimee >= 3  # Filtre durée désactivé
         ).order_by(TransactionDVF.score.desc()).limit(limit).all()
         
         analyzed = 0

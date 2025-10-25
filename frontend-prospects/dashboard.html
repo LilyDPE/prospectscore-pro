@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Dashboard Prospection - ProspectScore Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #04264b 0%, #0a3d7a 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .dashboard-container {
+            padding: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: #04264b;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .hot-prospect {
+            background: linear-gradient(135deg, #ff5722 0%, #f44336 100%);
+            color: white;
+        }
+        .hot-prospect .stat-number {
+            color: white;
+        }
+        .urgent-prospect {
+            background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+            color: white;
+        }
+        .urgent-prospect .stat-number {
+            color: white;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .top-commune {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .action-badge {
+            background: #b4e434;
+            color: #04264b;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .header-dashboard {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header-dashboard">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 style="color:#04264b;margin:0;">📊 Dashboard Prospection</h1>
+                    <p style="color:#666;margin:5px 0 0 0;">ProspectScore Pro - Analyse prédictive</p>
+                </div>
+                <div>
+                    <a href="index.html" class="btn" style="background:#04264b;color:white;">← Recherche prospects</a>
+                    <button onclick="refreshDashboard()" class="btn" style="background:#b4e434;color:#04264b;margin-left:10px;">🔄 Actualiser</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats principales -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-card urgent-prospect">
+                    <div class="stat-number" id="stat-urgent">-</div>
+                    <div class="stat-label">🚨 URGENTS (<3 mois)</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card hot-prospect">
+                    <div class="stat-number" id="stat-hot">-</div>
+                    <div class="stat-label">🔥 HOT (<6 mois)</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-medium">-</div>
+                    <div class="stat-label">📊 MEDIUM (<12 mois)</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-week">-</div>
+                    <div class="stat-label">📅 À CONTACTER CETTE SEMAINE</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats secondaires -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-investisseurs">-</div>
+                    <div class="stat-label">🔄 Investisseurs actifs (turnover)</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-passoires">-</div>
+                    <div class="stat-label">♨️ Passoires thermiques F/G</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-avg">-</div>
+                    <div class="stat-label">📈 Score moyen propension</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top communes -->
+        <div class="chart-container">
+            <h3 style="color:#04264b;margin-bottom:20px;">🏘️ Top 10 Communes HOT</h3>
+            <div id="top-communes"></div>
+        </div>
+
+        <!-- Actions à venir -->
+        <div class="chart-container">
+            <h3 style="color:#04264b;margin-bottom:20px;">📅 Actions cette semaine</h3>
+            <div id="next-actions"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://score.2a-immobilier.com';
+        const API_KEY = '2a-immobilier-admin-key-2024-secure';
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/prospects-summary`, {
+                    headers: { 'X-API-Key': API_KEY }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayStats(data.stats);
+                    displayTopCommunes(data.top_communes);
+                    displayNextActions(data.next_actions);
+                }
+            } catch (error) {
+                console.error('Erreur chargement dashboard:', error);
+            }
+        }
+
+        function displayStats(stats) {
+            document.getElementById('stat-urgent').textContent = stats.urgent || 0;
+            document.getElementById('stat-hot').textContent = stats.hot || 0;
+            document.getElementById('stat-medium').textContent = stats.medium || 0;
+            document.getElementById('stat-week').textContent = stats.a_contacter_cette_semaine || 0;
+            document.getElementById('stat-investisseurs').textContent = stats.investisseurs_actifs || 0;
+            document.getElementById('stat-passoires').textContent = stats.passoires_thermiques || 0;
+            document.getElementById('stat-avg').textContent = (stats.avg_score || 0) + ' pts';
+        }
+
+        function displayTopCommunes(communes) {
+            const container = document.getElementById('top-communes');
+            container.innerHTML = communes.map(c => `
+                <div class="top-commune">
+                    <div>
+                        <strong>${c.commune}</strong>
+                        <span class="text-muted ms-2">(${c.nb_prospects} prospects)</span>
+                    </div>
+                    <div>
+                        <span class="action-badge">${c.nb_hot} HOT</span>
+                        <span class="text-muted ms-2">Score moyen: ${c.score_moyen}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayNextActions(actions) {
+            const container = document.getElementById('next-actions');
+            if (!actions || actions.length === 0) {
+                container.innerHTML = '<p class="text-muted">Aucune action prévue cette semaine</p>';
+                return;
+            }
+            
+            container.innerHTML = actions.map(a => `
+                <div class="top-commune">
+                    <div>
+                        <strong>${new Date(a.next_contact_date).toLocaleDateString('fr-FR')}</strong>
+                        <span class="ms-2">${a.contact_priority}</span>
+                    </div>
+                    <div>
+                        <span class="action-badge">${a.nb_contacts} contacts</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function refreshDashboard() {
+            loadDashboard();
+        }
+
+        // Charger au démarrage
+        loadDashboard();
+        
+        // Actualiser toutes les 30 secondes
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>

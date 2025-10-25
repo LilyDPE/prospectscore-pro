@@ -555,7 +555,7 @@ if __name__ == "__main__":
 # ==================== IMPORT DPE ROUTES ====================
 from routes.dpe import router as dpe_router
 app.include_router(dpe_router)
-app.include_router(collaboration.router)
+# app.include_router(collaboration.router)
 
 # ==================== STARTUP EVENT ====================
 @app.on_event("startup")
@@ -571,24 +571,24 @@ async def startup_event():
 # ==================== ADMIN ROUTES ====================
 from routes.admin import router as admin_router
 app.include_router(admin_router)
-app.include_router(collaboration.router)
+# app.include_router(collaboration.router)
 
 # ==================== PROSPECTS ROUTES ====================
 from routes.prospects import router as prospects_router
 app.include_router(prospects_router)
-app.include_router(collaboration.router)
+# app.include_router(collaboration.router)
 
 # ==================== PROSPECTS ROUTES ====================
 from routes.prospects import router as prospects_router
 app.include_router(prospects_router)
-app.include_router(collaboration.router)
+# app.include_router(collaboration.router)
 
 # ==================== PUBLIC ROUTES ====================
 from routes.public import router as public_router
 app.include_router(public_router)
-app.include_router(collaboration.router)
+# app.include_router(collaboration.router)
 
 # ==================== PUBLIC ROUTES ====================
 from routes.public import router as public_router
 app.include_router(public_router)
-app.include_router(collaboration.router)
+# app.include_router(collaboration.router)
