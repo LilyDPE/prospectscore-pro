@@ -27,15 +27,15 @@ echo ""
 
 # Étape 2 : Récupérer les noms de communes via l'API
 echo -e "${CYAN}📊 Étape 2/3 : Récupération des noms depuis l'API...${NC}"
-if command -v python3 &> /dev/null; then
-    # Installer requests si nécessaire
-    python3 -m pip install requests psycopg2-binary --quiet 2>/dev/null || true
 
-    # Exécuter le script Python
-    python3 scripts/fetch_communes_api.py
+# Vérifier combien de codes INSEE restent à traduire
+CODES_RESTANTS=$(docker exec -i postgres-prospectscore psql -U prospectscore -d prospectscore -t -c "SELECT COUNT(*) FROM ref_communes WHERE nom_commune IS NULL;" | tr -d ' ')
+
+if [ "$CODES_RESTANTS" -gt 0 ]; then
+    echo -e "${YELLOW}   $CODES_RESTANTS codes INSEE à traduire via l'API${NC}"
+    ./scripts/fetch_communes_api.sh
 else
-    echo -e "${YELLOW}⚠️  Python3 non trouvé, traduction API ignorée${NC}"
-    echo -e "${YELLOW}   Installez Python3 pour améliorer la traduction${NC}"
+    echo -e "${GREEN}   ✓ Tous les codes INSEE sont déjà traduits${NC}"
 fi
 echo ""
 
