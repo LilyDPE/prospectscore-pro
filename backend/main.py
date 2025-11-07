@@ -365,7 +365,7 @@ def api_root():
     """Endpoint racine de l'API"""
     return {
         "app": "ProspectScore Pro API",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "status": "operational",
         "endpoints": {
             "docs": "/api/docs",
@@ -373,6 +373,8 @@ def api_root():
             "auth": "/api/auth/*",
             "prospects": "/api/prospects/*",
             "features": "/api/features/*",
+            "commerciaux_admin": "/api/admin/commerciaux/*",
+            "commercial": "/api/commercial/*",
             "stats": "/api/stats/dashboard",
             "public": "/api/public/*"
         },
@@ -386,6 +388,24 @@ def api_root():
                 "GET /api/features/top-propensity": "Top prospects"
             },
             "documentation": "Voir /FEATURES-ML.md"
+        },
+        "gestion_commerciaux": {
+            "description": "Système de gestion des commerciaux et assignation automatique",
+            "endpoints_admin": {
+                "GET /api/admin/commerciaux/": "Liste des commerciaux",
+                "POST /api/admin/commerciaux/": "Créer un commercial",
+                "PUT /api/admin/commerciaux/{id}": "Modifier un commercial",
+                "POST /api/admin/commerciaux/{id}/assign-prospects": "Assigner des prospects",
+                "GET /api/admin/commerciaux/dashboard/stats": "Dashboard admin"
+            },
+            "endpoints_commercial": {
+                "GET /api/commercial/me/{id}": "Mon profil",
+                "GET /api/commercial/mes-prospects/{id}": "Mes prospects",
+                "PUT /api/commercial/mes-prospects/{id}/{assignment_id}": "Mettre à jour un prospect",
+                "GET /api/commercial/mes-stats/{id}": "Mes statistiques",
+                "GET /api/commercial/mes-zones/{id}": "Mes zones et opportunités"
+            },
+            "documentation": "Voir /COMMERCIAUX.md"
         }
     }
 
@@ -629,3 +649,10 @@ async def get_prospect_features_compat(id_bien: int):
     """
     from routes.features import get_bien_features
     return await get_bien_features(id_bien)
+
+# ==================== COMMERCIAUX ROUTES ====================
+from routes.commerciaux import router as commerciaux_router
+app.include_router(commerciaux_router)
+
+from routes.commercial_interface import router as commercial_interface_router
+app.include_router(commercial_interface_router)
