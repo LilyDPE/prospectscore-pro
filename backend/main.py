@@ -360,6 +360,23 @@ def root():
         "status": "operational"
     }
 
+@app.get("/api/")
+def api_root():
+    """Endpoint racine de l'API"""
+    return {
+        "app": "ProspectScore Pro API",
+        "version": "1.0.0",
+        "status": "operational",
+        "endpoints": {
+            "docs": "/api/docs",
+            "health": "/api/",
+            "auth": "/api/auth/*",
+            "prospects": "/api/prospects/*",
+            "stats": "/api/stats/dashboard",
+            "public": "/api/public/*"
+        }
+    }
+
 # Auth routes
 @app.post("/api/auth/register", response_model=Token)
 def register(user: UserCreate, db: Session = Depends(get_db)):
