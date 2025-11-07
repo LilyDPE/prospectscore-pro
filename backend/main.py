@@ -372,8 +372,20 @@ def api_root():
             "health": "/api/",
             "auth": "/api/auth/*",
             "prospects": "/api/prospects/*",
+            "features": "/api/features/*",
             "stats": "/api/stats/dashboard",
             "public": "/api/public/*"
+        },
+        "features_ml": {
+            "description": "API Features ML pour le scoring de propension",
+            "endpoints": {
+                "GET /api/features/": "Info API Features",
+                "GET /api/features/{id_bien}": "Features d'un bien",
+                "GET /api/features/search": "Recherche avancée",
+                "GET /api/features/stats": "Statistiques globales",
+                "GET /api/features/top-propensity": "Top prospects"
+            },
+            "documentation": "Voir /FEATURES-ML.md"
         }
     }
 
@@ -603,9 +615,17 @@ app.include_router(prospects_router)
 # ==================== PUBLIC ROUTES ====================
 from routes.public import router as public_router
 app.include_router(public_router)
-# app.include_router(collaboration.router)
 
-# ==================== PUBLIC ROUTES ====================
-from routes.public import router as public_router
-app.include_router(public_router)
-# app.include_router(collaboration.router)
+# ==================== FEATURES ML ROUTES ====================
+from routes.features import router as features_router
+app.include_router(features_router)
+
+# Endpoint de compatibilité pour /api/prospects/{id_bien}/features
+@app.get("/api/prospects/{id_bien}/features")
+async def get_prospect_features_compat(id_bien: int):
+    """
+    Endpoint de compatibilité pour récupérer les features d'un bien
+    Redirige vers /api/features/{id_bien}
+    """
+    from routes.features import get_bien_features
+    return await get_bien_features(id_bien)
