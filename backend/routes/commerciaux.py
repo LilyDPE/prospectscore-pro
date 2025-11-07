@@ -219,7 +219,8 @@ async def delete_commercial(commercial_id: int, supprimer_definitivement: bool =
 async def assign_prospects_to_commercial(
     commercial_id: int,
     request: Optional[AssignProspectsRequest] = None,
-    nombre_prospects: int = Query(10, description="Nombre de prospects à assigner", le=100)
+    nombre_prospects: int = Query(10, description="Nombre de prospects à assigner", le=100),
+    envoyer_email: bool = Query(True, description="Envoyer un email au commercial avec la liste")
 ):
     """
     Assigner automatiquement des prospects à un commercial
@@ -230,6 +231,7 @@ async def assign_prospects_to_commercial(
     Args:
         commercial_id: ID du commercial
         nombre_prospects: Nombre de prospects à assigner
+        envoyer_email: Envoyer un email avec la liste des prospects (défaut: True)
     """
     db = SessionLocal()
     try:
@@ -310,7 +312,14 @@ async def assign_prospects_to_commercial(
                 "bien_id": bien.id_bien,
                 "adresse": bien.adresse,
                 "code_postal": bien.code_postal,
-                "propensity_score": bien.propensity_score
+                "commune": bien.commune,
+                "type_local": bien.type_local,
+                "surface_reelle": bien.surface_reelle,
+                "nombre_pieces": bien.nombre_pieces,
+                "last_price": bien.last_price,
+                "zone_type": bien.zone_type,
+                "propensity_score": bien.propensity_score,
+                "priorite": "HAUTE" if bien.propensity_score >= 80 else "MOYENNE" if bien.propensity_score >= 60 else "BASSE"
             })
 
         # Mettre à jour les stats du commercial
@@ -320,8 +329,23 @@ async def assign_prospects_to_commercial(
 
         db.commit()
 
+        # Envoyer l'email au commercial
+        email_sent = False
+        if envoyer_email and commercial.email:
+            try:
+                from services.email_service import email_service
+                email_sent = email_service.send_prospects_to_commercial(
+                    commercial_email=commercial.email,
+                    commercial_name=f"{commercial.prenom} {commercial.nom}",
+                    prospects=assignments_created
+                )
+            except Exception as e:
+                print(f"⚠️  Erreur envoi email: {e}")
+                # Ne pas bloquer l'assignation si l'email échoue
+
         return {
             "message": f"{len(assignments_created)} prospects assignés à {commercial.prenom} {commercial.nom}",
+            "email_envoye": email_sent,
             "commercial": commercial.to_dict(),
             "prospects_assignes": assignments_created
         }
