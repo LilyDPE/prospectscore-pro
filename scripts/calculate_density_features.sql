@@ -17,7 +17,10 @@ END $$;
 
 -- Étape 2 : Calculer density_tx_1km (nombre de ventes / km² dans rayon 1km)
 -- Utilise les transactions DVF des 36 derniers mois
-RAISE NOTICE '📊 Calcul density_tx_1km...';
+DO $$
+BEGIN
+    RAISE NOTICE '📊 Calcul density_tx_1km...';
+END $$;
 
 UPDATE biens_univers b
 SET density_tx_1km = (
@@ -32,7 +35,10 @@ WHERE b.geom IS NOT NULL
   AND b.longitude IS NOT NULL;
 
 -- Étape 3 : Calculer density_tx_5km (rayon 5km pour zones rurales)
-RAISE NOTICE '📊 Calcul density_tx_5km...';
+DO $$
+BEGIN
+    RAISE NOTICE '📊 Calcul density_tx_5km...';
+END $$;
 
 UPDATE biens_univers b
 SET density_tx_5km = (
@@ -47,7 +53,10 @@ WHERE b.geom IS NOT NULL
   AND b.longitude IS NOT NULL;
 
 -- Étape 4 : Calculer density_biens_1km (stock de biens / km²)
-RAISE NOTICE '📊 Calcul density_biens_1km...';
+DO $$
+BEGIN
+    RAISE NOTICE '📊 Calcul density_biens_1km...';
+END $$;
 
 UPDATE biens_univers b
 SET density_biens_1km = (
@@ -61,7 +70,10 @@ WHERE b.geom IS NOT NULL
   AND b.longitude IS NOT NULL;
 
 -- Étape 5 : Calculer effective_n_local avec kernel triangulaire (rayon 5km)
-RAISE NOTICE '📊 Calcul effective_n_local (kernel weighting)...';
+DO $$
+BEGIN
+    RAISE NOTICE '📊 Calcul effective_n_local (kernel weighting)...';
+END $$;
 
 UPDATE biens_univers b
 SET effective_n_local = (
@@ -80,7 +92,10 @@ WHERE b.geom IS NOT NULL
   AND b.longitude IS NOT NULL;
 
 -- Étape 6 : Classifier en bins de densité (quintiles)
-RAISE NOTICE '📊 Classification en bins de densité...';
+DO $$
+BEGIN
+    RAISE NOTICE '📊 Classification en bins de densité...';
+END $$;
 
 WITH density_quantiles AS (
     SELECT
@@ -106,7 +121,10 @@ CREATE INDEX IF NOT EXISTS idx_biens_univers_density_bin ON biens_univers(densit
 CREATE INDEX IF NOT EXISTS idx_biens_univers_last_tx_date ON biens_univers(last_transaction_date);
 
 -- Étape 8 : Statistiques de vérification
-RAISE NOTICE '📊 Statistiques finales...';
+DO $$
+BEGIN
+    RAISE NOTICE '📊 Statistiques finales...';
+END $$;
 
 SELECT
     density_bin,
