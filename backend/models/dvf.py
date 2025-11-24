@@ -52,7 +52,19 @@ class TransactionDVF(Base):
     contraintes_convergentes = Column(Integer, default=0)
     pic_marche_local = Column(Boolean, default=False)
     derniere_analyse_propension = Column(DateTime, nullable=True)
-    
+
+    # Colonnes pour auto-apprentissage et validation
+    statut_final = Column(Integer, nullable=True)  # 0=Pas vendu, 1=Vendu confirmé, 2=En négociation
+    date_validation = Column(DateTime, nullable=True)
+    source_validation = Column(String, nullable=True)  # 'DVF_API', 'AGENT_FEEDBACK', 'WEB_SCRAPING'
+    prix_vente_reel = Column(Float, nullable=True)  # Prix réel de vente (si différent de valeur_fonciere)
+    delai_vente_jours = Column(Integer, nullable=True)  # Jours entre prédiction et vente
+    precision_prediction = Column(Float, nullable=True)  # Écart entre propensity_score et résultat réel
+    feedback_agent = Column(String, nullable=True)  # Notes de l'agent (raison refus, etc.)
+    contacted_at = Column(DateTime, nullable=True)  # Date du premier contact
+    utilisé_pour_training = Column(Boolean, default=False)  # Déjà utilisé dans un entraînement
+    date_ajout_training = Column(DateTime, nullable=True)
+
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

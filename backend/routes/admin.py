@@ -314,12 +314,13 @@ async def get_prospects_to_contact_today():
     """Liste des prospects à contacter AUJOURD'HUI"""
     from database import SessionLocal
     from sqlalchemy import text
-    
+    from datetime import datetime
+
     db = SessionLocal()
     try:
         prospects = db.execute(text("""
-            SELECT 
-                id, adresse, code_postal, commune, 
+            SELECT
+                id, adresse, code_postal, commune,
                 type_local, surface_reelle, valeur_fonciere,
                 propensity_score, propensity_timeframe, contact_priority,
                 propensity_raisons, next_contact_date,
@@ -329,12 +330,200 @@ async def get_prospects_to_contact_today():
             ORDER BY propensity_score DESC, contact_priority
             LIMIT 50
         """)).fetchall()
-        
+
         return {
             "success": True,
             "date": str(datetime.now().date()),
             "count": len(prospects),
             "prospects": [dict(row._mapping) for row in prospects]
+        }
+    finally:
+        db.close()
+
+# ==================== AUTO-LEARNING ENDPOINTS ====================
+
+class FeedbackRequest(BaseModel):
+    prospect_id: int
+    statut_final: int  # 0=Pas vendu/Refus, 1=Vendu, 2=En négociation
+    feedback_agent: Optional[str] = None
+    prix_vente_reel: Optional[float] = None
+    contacted: bool = True
+
+@router.post("/feedback")
+async def submit_agent_feedback(feedback: FeedbackRequest):
+    """
+    Permet aux agents de soumettre un feedback sur un prospect
+    C'est le feedback RAPIDE qui nourrit l'IA immédiatement
+    """
+    from database import SessionLocal
+    from models.dvf import TransactionDVF
+    from datetime import datetime
+
+    db = SessionLocal()
+    try:
+        prospect = db.query(TransactionDVF).filter(
+            TransactionDVF.id == feedback.prospect_id
+        ).first()
+
+        if not prospect:
+            raise HTTPException(status_code=404, detail="Prospect non trouvé")
+
+        # Calculer le délai entre prédiction et feedback
+        delai = None
+        if prospect.derniere_analyse_propension:
+            delai = (datetime.now() - prospect.derniere_analyse_propension).days
+
+        # Mettre à jour le statut
+        prospect.statut_final = feedback.statut_final
+        prospect.source_validation = "AGENT_FEEDBACK"
+        prospect.date_validation = datetime.now()
+        prospect.feedback_agent = feedback.feedback_agent
+        prospect.prix_vente_reel = feedback.prix_vente_reel
+        prospect.delai_vente_jours = delai
+
+        if feedback.contacted:
+            prospect.contacted_at = datetime.now()
+
+        # Calculer la précision de notre prédiction
+        if feedback.statut_final == 1:  # Vendu
+            if prospect.propensity_score >= 75:
+                prospect.precision_prediction = 1.0  # On avait raison !
+            elif prospect.propensity_score >= 60:
+                prospect.precision_prediction = 0.7
+            else:
+                prospect.precision_prediction = 0.3
+        else:  # Pas vendu
+            if prospect.propensity_score < 60:
+                prospect.precision_prediction = 1.0  # On avait raison de ne pas trop y croire
+            else:
+                prospect.precision_prediction = 0.0  # Faux positif
+
+        db.commit()
+
+        logger.info(
+            f"✅ Feedback reçu pour prospect {feedback.prospect_id}: "
+            f"statut={feedback.statut_final}, délai={delai} jours"
+        )
+
+        return {
+            "success": True,
+            "message": "Feedback enregistré avec succès",
+            "prospect_id": feedback.prospect_id,
+            "precision_prediction": prospect.precision_prediction
+        }
+    finally:
+        db.close()
+
+@router.post("/reconcile-dvf")
+async def reconcile_dvf_sales(
+    min_similarity: float = 0.7,
+    lookback_months: int = 18
+):
+    """
+    Lance le rapprochement DVF pour détecter les ventes confirmées
+    C'est la VÉRITÉ TERRAIN qui valide nos prédictions
+    """
+    from database import SessionLocal
+    from services.dvf_matcher import DVFMatcher
+
+    db = SessionLocal()
+    try:
+        matcher = DVFMatcher(db)
+        result = matcher.reconcile_sales(
+            min_similarity=min_similarity,
+            lookback_months=lookback_months
+        )
+
+        return {
+            "success": True,
+            "message": f"{result['matches_trouves']} ventes confirmées par DVF",
+            **result
+        }
+    finally:
+        db.close()
+
+@router.post("/train-ml-model")
+async def train_ml_model(model_type: str = "random_forest"):
+    """
+    Entraîne le modèle ML avec toutes les données validées
+
+    model_type: 'random_forest', 'gradient_boosting', ou 'xgboost'
+    """
+    from database import SessionLocal
+    from services.ml_trainer import MLTrainer
+
+    db = SessionLocal()
+    try:
+        trainer = MLTrainer(db)
+        result = trainer.train_model(model_type=model_type)
+
+        return {
+            "success": True,
+            "message": f"Modèle {model_type} entraîné avec succès",
+            **result
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+@router.get("/ml-training-stats")
+async def get_ml_training_stats():
+    """Statistiques sur les données disponibles pour l'entraînement"""
+    from database import SessionLocal
+    from sqlalchemy import func, text
+    from models.dvf import TransactionDVF
+
+    db = SessionLocal()
+    try:
+        # Compter les données validées
+        total_validé = db.query(func.count(TransactionDVF.id)).filter(
+            TransactionDVF.statut_final.isnot(None)
+        ).scalar()
+
+        vendus = db.query(func.count(TransactionDVF.id)).filter(
+            TransactionDVF.statut_final == 1
+        ).scalar()
+
+        pas_vendus = db.query(func.count(TransactionDVF.id)).filter(
+            TransactionDVF.statut_final == 0
+        ).scalar()
+
+        deja_utilisé = db.query(func.count(TransactionDVF.id)).filter(
+            TransactionDVF.utilisé_pour_training == True
+        ).scalar()
+
+        nouveau_disponible = db.query(func.count(TransactionDVF.id)).filter(
+            TransactionDVF.statut_final.isnot(None),
+            TransactionDVF.utilisé_pour_training == False
+        ).scalar()
+
+        # Distribution par source de validation
+        by_source = db.query(
+            TransactionDVF.source_validation,
+            func.count(TransactionDVF.id)
+        ).filter(
+            TransactionDVF.statut_final.isnot(None)
+        ).group_by(TransactionDVF.source_validation).all()
+
+        # Précision moyenne
+        avg_precision = db.query(func.avg(TransactionDVF.precision_prediction)).filter(
+            TransactionDVF.precision_prediction.isnot(None)
+        ).scalar()
+
+        return {
+            "success": True,
+            "total_validé": total_validé,
+            "vendus": vendus,
+            "pas_vendus": pas_vendus,
+            "balance_classes": round(vendus / max(total_validé, 1), 3),
+            "deja_utilisé_training": deja_utilisé,
+            "nouveau_disponible": nouveau_disponible,
+            "pret_entrainement": nouveau_disponible >= 50,
+            "sources_validation": {src: count for src, count in by_source},
+            "precision_moyenne": round(avg_precision, 3) if avg_precision else None
         }
     finally:
         db.close()
