@@ -1,10 +1,22 @@
-# Import DVF Historique (2014-2022)
+# Import DVF Historique (2014-2019)
 
 ## 🎯 Problème
 
-L'API `data.gouv.fr` ne propose que les données **2023-2025** en téléchargement automatique.
+L'API `data.gouv.fr` propose les données **2020-2025** en téléchargement automatique.
 
-Pour les années **2014-2022**, vous devez télécharger manuellement les fichiers.
+Pour les années **2014-2019**, vous devez télécharger manuellement les fichiers.
+
+## ✅ Déjà Importé
+
+- **2020-2024** : 289,906 transactions (importées via API)
+  - 76 (Seine-Maritime) : 119,416 transactions
+  - 80 (Somme) : 49,012 transactions
+  - 27 (Eure) : 59,725 transactions
+  - 60 (Oise) : 61,753 transactions
+
+## ⚠️ Manquant : 2014-2019
+
+Il vous faut ces 6 années pour détecter les REVENTES (un bien acheté en 2015 puis revendu en 2023).
 
 ## 📥 Solution : Upload Manuel
 
@@ -25,14 +37,14 @@ Ce script :
 
 **Source officielle :** https://cadastre.data.gouv.fr/data/etalab-dvf/
 
-Pour chaque année (2014-2022), téléchargez le fichier **full.csv.gz** :
+Pour chaque année (2014-2019), téléchargez le fichier **full.csv.gz** :
 
 ```bash
 # Exemple pour 2014
 wget https://cadastre.data.gouv.fr/data/etalab-dvf/2014/full.csv.gz
 
-# Ou pour toutes les années d'un coup
-for year in {2014..2022}; do
+# Ou pour toutes les années d'un coup (2014-2019)
+for year in {2014..2019}; do
   wget "https://cadastre.data.gouv.fr/data/etalab-dvf/$year/full.csv.gz" -O "dvf_$year.csv.gz"
 done
 ```
@@ -79,7 +91,7 @@ curl -X POST http://votre-serveur:8003/api/admin/import-dvf-file \
 #!/bin/bash
 # upload_all_historical.sh
 
-for year in {2014..2022}; do
+for year in {2014..2019}; do
   FILE="dvf_${year}.csv.gz"
 
   if [ -f "$FILE" ]; then
@@ -141,13 +153,13 @@ curl -X POST http://localhost:8003/api/admin/train-ml-model \
 
 | Étape | Temps estimé |
 |-------|--------------|
-| Téléchargement 9 ans (full) | 30-60 min |
+| Téléchargement 6 ans (full 2014-2019) | 20-40 min |
 | Filtrage par département (optionnel) | 10-20 min |
-| Upload vers API (9 fichiers) | 20-40 min |
+| Upload vers API (6 fichiers) | 15-30 min |
 | Analyse propensity (500k trans.) | 30-60 min |
 | DVF Matching | 5-10 min |
 | Premier entraînement ML | 2-5 min |
-| **TOTAL** | **~2-3 heures** |
+| **TOTAL** | **~1.5-2.5 heures** |
 
 ## 🚨 Problèmes Courants
 
@@ -184,10 +196,11 @@ https://cadastre.data.gouv.fr/data/etalab-dvf/
 ## ✅ Résumé
 
 1. ✅ Nouveau endpoint créé : `POST /api/admin/import-dvf-file`
-2. ✅ Téléchargez manuellement depuis cadastre.data.gouv.fr
-3. ✅ Uploadez via curl ou Swagger
-4. ✅ Lancez l'analyse + matching + training
+2. ✅ 2020-2024 déjà importé : 289,906 transactions (4 départements)
+3. ⚠️ Manquant : Téléchargez manuellement 2014-2019 depuis cadastre.data.gouv.fr
+4. ✅ Uploadez via curl ou Swagger
+5. ✅ Lancez l'analyse + matching + training
 
-**Pour vos 7 départements x 9 ans = ~300-400k transactions historiques**
+**Total attendu : 4 départements x 10 ans (2014-2024) = ~450-550k transactions**
 
-Cela devrait vous donner **1000-2000 reventes détectées** pour entraîner le ML !
+Avec ce dataset, vous devriez obtenir **1,500-3,000 reventes détectées** pour entraîner le ML !
