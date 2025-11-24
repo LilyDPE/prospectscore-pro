@@ -211,15 +211,69 @@ async def enrich_smart(score_min: int = 50, limit: int = 100):
 
 @router.post("/analyze-propensity")
 async def analyze_propensity(score_min: int = 40, limit: int = 1000):
-    """Analyse la propension à vendre - LE GAME CHANGER"""
+    """Analyse la propension à vendre - VERSION 1 (DEPRECATED)"""
     from database import SessionLocal
     from services.propensity_predictor import PropensityToSellPredictor
-    
+
     db = SessionLocal()
     try:
         predictor = PropensityToSellPredictor(db)
         result = predictor.analyze_batch(score_min, limit)
-        return {"success": True, **result}
+        return {"success": True, "version": "v1", **result}
+    finally:
+        db.close()
+
+@router.post("/analyze-propensity-v2")
+async def analyze_propensity_v2(score_min: int = 40, limit: int = 1000):
+    """
+    🚀 VERSION 2 - Analyse de propension à vendre AMÉLIORÉE
+
+    Améliorations :
+    - Détection des VRAIES reventes (bug corrigé)
+    - Calcul dynamique de la durée de détention
+    - Signaux de liquidité du marché (volume, accélération)
+    - Analyse de rentabilité locative (investisseurs)
+    - Détection de succession (détention longue, indivision)
+    - Saisonnalité (printemps = optimal)
+    - Scoring normalisé sur 100 points (max 235 pts brut)
+
+    Score total possible : 235 points → normalisé sur 100
+    - Fenêtre cohorte : 45 pts
+    - Contraintes convergentes : 60 pts
+    - Effet jumeaux (corrigé) : 40 pts
+    - Pic de marché : 35 pts
+    - 🆕 Liquidité marché : 40 pts
+    - 🆕 Rentabilité locative : 35 pts
+    - 🆕 Succession : 60 pts
+    - 🆕 Saisonnalité : 15 pts
+    - Turnover régulier : 20 pts
+    - Propriétaire pro : 15 pts
+    """
+    from database import SessionLocal
+    from services.propensity_predictor_v2 import PropensityToSellPredictorV2
+
+    db = SessionLocal()
+    try:
+        logger.info(f"🚀 Lancement analyse V2 : score_min={score_min}, limit={limit}")
+        predictor = PropensityToSellPredictorV2(db)
+        result = predictor.analyze_batch(score_min, limit)
+
+        return {
+            "success": True,
+            "version": "v2",
+            "improvements": [
+                "Détection reventes corrigée",
+                "Durée détention calculée dynamiquement",
+                "Liquidité marché ajoutée",
+                "Rentabilité locative ajoutée",
+                "Détection succession ajoutée",
+                "Saisonnalité ajoutée"
+            ],
+            **result
+        }
+    except Exception as e:
+        logger.error(f"❌ Erreur analyse V2: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
 

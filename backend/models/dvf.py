@@ -24,34 +24,28 @@ class TransactionDVF(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     
-    # Colonnes propriétaire / enrichissement Pappers
+    # Colonnes propriétaire / enrichissement
     proprietaire_type = Column(String, nullable=True)
     proprietaire_nom = Column(String, nullable=True)
     proprietaire_siren = Column(String, nullable=True)
     enrichi_pappers = Column(Boolean, default=False)
     date_enrichissement = Column(DateTime, nullable=True)
     details_detection = Column(String, nullable=True)
-    propensity_score = Column(Integer, default=0)
+
+    # Propensity Score
+    propensity_score = Column(Integer, default=0, index=True)
     propensity_raisons = Column(ARRAY(String), nullable=True)
     propensity_timeframe = Column(String, nullable=True)
-    contact_priority = Column(String, nullable=True)
+    contact_priority = Column(String, nullable=True, index=True)
     cohorte_vente_active = Column(Boolean, default=False)
     contraintes_convergentes = Column(Integer, default=0)
     pic_marche_local = Column(Boolean, default=False)
     derniere_analyse_propension = Column(DateTime, nullable=True)
+
+    # Turnover / Reventes
     historique_ventes = Column(JSON, nullable=True)
-    turnover_regulier = Column(Boolean, default=False)
+    turnover_regulier = Column(Boolean, default=False, index=True)
     frequence_vente_mois = Column(Integer, nullable=True)
-    date_enrichissement = Column(DateTime, nullable=True)
-    details_detection = Column(String, nullable=True)
-    propensity_score = Column(Integer, default=0)
-    propensity_raisons = Column(ARRAY(String), nullable=True)
-    propensity_timeframe = Column(String, nullable=True)
-    contact_priority = Column(String, nullable=True)
-    cohorte_vente_active = Column(Boolean, default=False)
-    contraintes_convergentes = Column(Integer, default=0)
-    pic_marche_local = Column(Boolean, default=False)
-    derniere_analyse_propension = Column(DateTime, nullable=True)
     
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
