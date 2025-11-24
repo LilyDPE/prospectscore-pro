@@ -59,12 +59,12 @@ async def import_dvf(
 @router.post("/import-dvf-file")
 async def import_dvf_from_file(file: UploadFile = File(...)):
     """
-    Import DVF depuis un fichier CSV uploadé
+    Import DVF depuis un fichier uploadé
 
-    Utilisez cette route pour importer des fichiers DVF historiques (2014-2022)
-    téléchargés depuis https://cadastre.data.gouv.fr/data/etalab-dvf/
+    Utilisez cette route pour importer des fichiers DVF historiques (2014-2019)
+    téléchargés depuis data.gouv.fr
 
-    Format accepté: CSV ou CSV.GZ
+    Formats acceptés: CSV, TXT, CSV.GZ, TXT.GZ
     """
     from services.dvf_importer import DVFImporter
     from database import SessionLocal
@@ -84,8 +84,13 @@ async def import_dvf_from_file(file: UploadFile = File(...)):
         if file.filename.endswith('.gz'):
             content = gzip.decompress(content)
 
-        # Parser CSV
-        df = pd.read_csv(io.BytesIO(content), low_memory=False)
+        # Parser CSV/TXT (les fichiers DVF .txt sont des CSV avec séparateur pipe |)
+        try:
+            # Essayer avec séparateur pipe (format .txt DVF)
+            df = pd.read_csv(io.BytesIO(content), sep='|', low_memory=False)
+        except:
+            # Sinon essayer séparateur virgule (format .csv standard)
+            df = pd.read_csv(io.BytesIO(content), low_memory=False)
         logger.info(f"📊 {len(df)} lignes dans le fichier")
 
         # Utiliser l'importer existant
