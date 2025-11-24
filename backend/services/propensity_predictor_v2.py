@@ -95,8 +95,8 @@ class PropensityToSellPredictorV2:
                 taux_plus_value = 0
 
             historique.append({
-                'date_achat': vente_prev.date_mutation,
-                'date_vente': vente_curr.date_mutation,
+                'date_achat': str(vente_prev.date_mutation) if vente_prev.date_mutation else None,
+                'date_vente': str(vente_curr.date_mutation) if vente_curr.date_mutation else None,
                 'duree_detention': duree_annees,
                 'prix_achat': vente_prev.valeur_fonciere,
                 'prix_vente': vente_curr.valeur_fonciere,
