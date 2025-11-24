@@ -30,3 +30,29 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Fichiers locaux à ignorer
+*.backup
+*.bak
+.env.backup
+calculate_scores.py
+calculate_scores_v2.py
+envoi_quotidien.py
+main.py.backup
+main.py.bak
+biens_univers.py
+lgb_model.*
+metadata.json
+auth_commerciaux.py
+ml.py
+prospects.py.backup
+docker-compose.yml.backup
+admin.html
+forgot-password.html
+login.html
+reset-password.html
+dispatch/
+enrich_georisques.py
+init_password.py
+manage_commerciaux.sh
+GUIDE_COMMERCIAL.md
