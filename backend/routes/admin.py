@@ -84,14 +84,39 @@ async def import_dvf_from_file(file: UploadFile = File(...)):
         if file.filename.endswith('.gz'):
             content = gzip.decompress(content)
 
-        # Parser CSV/TXT (les fichiers DVF .txt sont des CSV avec séparateur pipe |)
-        try:
-            # Essayer avec séparateur pipe (format .txt DVF)
-            df = pd.read_csv(io.BytesIO(content), sep='|', low_memory=False)
-        except:
-            # Sinon essayer séparateur virgule (format .csv standard)
-            df = pd.read_csv(io.BytesIO(content), low_memory=False)
-        logger.info(f"📊 {len(df)} lignes dans le fichier")
+        # Parser CSV/TXT avec détection automatique du format
+        # Les fichiers DVF peuvent avoir différents séparateurs: |, ,, ; ou \t
+        df = None
+        parsing_errors = []
+
+        # Liste des configurations à essayer
+        configs = [
+            {'sep': '|', 'encoding': 'utf-8', 'on_bad_lines': 'skip'},
+            {'sep': ',', 'encoding': 'utf-8', 'on_bad_lines': 'skip'},
+            {'sep': ';', 'encoding': 'utf-8', 'on_bad_lines': 'skip'},
+            {'sep': '|', 'encoding': 'iso-8859-1', 'on_bad_lines': 'skip'},
+            {'sep': ',', 'encoding': 'iso-8859-1', 'on_bad_lines': 'skip'},
+        ]
+
+        for config in configs:
+            try:
+                df = pd.read_csv(io.BytesIO(content), low_memory=False, **config)
+                # Vérifier que le DataFrame a des colonnes valides
+                if len(df.columns) > 10:  # DVF a normalement 40+ colonnes
+                    logger.info(f"✅ Parsing réussi avec sep='{config['sep']}', encoding={config['encoding']}")
+                    break
+                else:
+                    df = None
+            except Exception as e:
+                parsing_errors.append(f"{config['sep']}/{config['encoding']}: {str(e)[:50]}")
+                continue
+
+        if df is None or df.empty:
+            error_msg = "Impossible de parser le fichier. Erreurs:\n" + "\n".join(parsing_errors)
+            logger.error(error_msg)
+            raise HTTPException(status_code=400, detail=error_msg)
+
+        logger.info(f"📊 {len(df)} lignes, {len(df.columns)} colonnes dans le fichier")
 
         # Utiliser l'importer existant
         importer = DVFImporter(db)
