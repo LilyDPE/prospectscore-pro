@@ -1,5 +1,5 @@
 from middleware.auth import verify_admin_key
-from fastapi import Depends
+from fastapi import Depends, File, UploadFile
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -25,31 +25,86 @@ async def import_dvf(
 ):
     """
     Import les données DVF (transactions immobilières) pour les départements demandés
-    
+
     Départements disponibles : 76 (Seine-Maritime), 80 (Somme), 27 (Eure), 14 (Calvados), etc.
+    ⚠️ ATTENTION : L'API data.gouv.fr ne propose que 2023-2025
+    Pour les années antérieures, utilisez /import-dvf-file avec upload manuel
     """
     from services.dvf_importer import DVFImporter
     from database import SessionLocal
-    
+
     db = SessionLocal()
-    
+
     try:
         logger.info(f"🚀 Lancement import DVF: {request.departements} - {request.years}")
-        
+
         importer = DVFImporter(db)
         results = importer.run_import(
             departements=request.departements,
             years=request.years
         )
-        
+
         return ImportDVFResponse(
             success=True,
             message=f"Import terminé : {results['global_imported']} transactions importées",
             results=results
         )
-        
+
     except Exception as e:
         logger.error(f"❌ Erreur import DVF: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+@router.post("/import-dvf-file")
+async def import_dvf_from_file(file: UploadFile = File(...)):
+    """
+    Import DVF depuis un fichier CSV uploadé
+
+    Utilisez cette route pour importer des fichiers DVF historiques (2014-2022)
+    téléchargés depuis https://cadastre.data.gouv.fr/data/etalab-dvf/
+
+    Format accepté: CSV ou CSV.GZ
+    """
+    from services.dvf_importer import DVFImporter
+    from database import SessionLocal
+    import pandas as pd
+    import gzip
+    import io
+
+    db = SessionLocal()
+
+    try:
+        logger.info(f"📥 Upload fichier DVF: {file.filename}")
+
+        # Lire le fichier
+        content = await file.read()
+
+        # Décompresser si .gz
+        if file.filename.endswith('.gz'):
+            content = gzip.decompress(content)
+
+        # Parser CSV
+        df = pd.read_csv(io.BytesIO(content), low_memory=False)
+        logger.info(f"📊 {len(df)} lignes dans le fichier")
+
+        # Utiliser l'importer existant
+        importer = DVFImporter(db)
+        df_clean = importer.clean_and_filter_data(df)
+        imported = importer.import_to_database(df_clean)
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": f"Import réussi : {imported} transactions",
+            "filename": file.filename,
+            "total_lines": len(df),
+            "imported": imported
+        }
+
+    except Exception as e:
+        logger.error(f"❌ Erreur import fichier: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
