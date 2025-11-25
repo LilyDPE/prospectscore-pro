@@ -68,12 +68,22 @@ class DVFImporter:
             raise ValueError("Colonne 'type_local' introuvable après normalisation")
 
         df = df[df['type_local'].isin(['Maison', 'Appartement'])].copy()
+        logger.info(f"Après filtre type_local: {len(df)} transactions")
 
         # Filtrer par départements cibles (Seine-Maritime, Somme, Eure, Oise, Calvados, Manche, Orne)
         if 'code_departement' in df.columns:
+            # Convertir en string et nettoyer (peut être numérique dans les anciens fichiers)
+            df['code_departement'] = df['code_departement'].astype(str).str.strip()
+
+            # Afficher un échantillon pour debug
+            sample_depts = df['code_departement'].unique()[:20]
+            logger.info(f"🔍 Échantillon codes départements: {list(sample_depts)}")
+
             target_depts = ['76', '80', '27', '60', '14', '50', '61']
             df = df[df['code_departement'].isin(target_depts)].copy()
             logger.info(f"📍 Filtré par départements {target_depts}: {len(df)} transactions")
+        else:
+            logger.warning("⚠️ Colonne 'code_departement' introuvable!")
 
         # Convertir les colonnes numériques (dans les anciens fichiers, elles peuvent être des strings)
         if 'valeur_fonciere' in df.columns:
