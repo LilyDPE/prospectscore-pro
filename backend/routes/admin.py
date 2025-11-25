@@ -120,8 +120,13 @@ async def import_dvf_from_file(file: UploadFile = File(...)):
 
         # Utiliser l'importer existant
         importer = DVFImporter(db)
+
+        logger.info(f"🔍 AVANT clean_and_filter_data: {len(df)} lignes")
         df_clean = importer.clean_and_filter_data(df)
+        logger.info(f"🔍 APRÈS clean_and_filter_data: {len(df_clean)} lignes")
+
         imported = importer.import_to_database(df_clean)
+        logger.info(f"🔍 APRÈS import_to_database: {imported}")
 
         db.commit()
 
@@ -130,6 +135,7 @@ async def import_dvf_from_file(file: UploadFile = File(...)):
             "message": f"Import réussi : {imported} transactions",
             "filename": file.filename,
             "total_lines": len(df),
+            "filtered_lines": len(df_clean),
             "imported": imported
         }
 
