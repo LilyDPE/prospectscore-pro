@@ -69,6 +69,12 @@ class DVFImporter:
 
         df = df[df['type_local'].isin(['Maison', 'Appartement'])].copy()
 
+        # Filtrer par départements cibles (Seine-Maritime, Somme, Eure, Oise, Calvados, Manche, Orne)
+        if 'code_departement' in df.columns:
+            target_depts = ['76', '80', '27', '60', '14', '50', '61']
+            df = df[df['code_departement'].isin(target_depts)].copy()
+            logger.info(f"📍 Filtré par départements {target_depts}: {len(df)} transactions")
+
         # Convertir les colonnes numériques (dans les anciens fichiers, elles peuvent être des strings)
         if 'valeur_fonciere' in df.columns:
             df['valeur_fonciere'] = pd.to_numeric(df['valeur_fonciere'], errors='coerce')
