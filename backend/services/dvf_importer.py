@@ -68,6 +68,15 @@ class DVFImporter:
             raise ValueError("Colonne 'type_local' introuvable après normalisation")
 
         df = df[df['type_local'].isin(['Maison', 'Appartement'])].copy()
+
+        # Convertir les colonnes numériques (dans les anciens fichiers, elles peuvent être des strings)
+        if 'valeur_fonciere' in df.columns:
+            df['valeur_fonciere'] = pd.to_numeric(df['valeur_fonciere'], errors='coerce')
+        if 'surface_reelle_bati' in df.columns:
+            df['surface_reelle_bati'] = pd.to_numeric(df['surface_reelle_bati'], errors='coerce')
+        if 'nombre_pieces_principales' in df.columns:
+            df['nombre_pieces_principales'] = pd.to_numeric(df['nombre_pieces_principales'], errors='coerce')
+
         df = df[df['valeur_fonciere'].notna() & (df['valeur_fonciere'] > 0)]
 
         cols = ['id_mutation', 'date_mutation', 'adresse_nom_voie', 'adresse_numero',
