@@ -122,15 +122,22 @@ async def import_dvf_from_file(file: UploadFile = File(...), debug: bool = False
 
         # Mode debug: retourner un échantillon sans importer
         if debug:
+            # Chercher la colonne type_local (peut avoir différents noms)
+            type_local_col = None
+            for col in ['Type local', 'type_local', 'Type_local']:
+                if col in df.columns:
+                    type_local_col = col
+                    break
+
             sample = df.head(100).to_dict('records')
             return {
                 "success": True,
                 "debug_mode": True,
                 "message": "Mode debug: échantillon des données (pas d'import)",
                 "total_lines": len(df),
-                "columns": list(df.columns),
-                "sample_type_local": df['Type local'].value_counts().head(10).to_dict() if 'Type local' in df.columns else {},
-                "sample_rows": sample[:5]
+                "columns": list(df.columns)[:30],  # Limiter à 30 colonnes
+                "sample_type_local": df[type_local_col].value_counts().head(10).to_dict() if type_local_col else {},
+                "sample_rows": sample[:3]  # Réduire à 3 lignes pour éviter trop de données
             }
 
         # Utiliser l'importer existant
