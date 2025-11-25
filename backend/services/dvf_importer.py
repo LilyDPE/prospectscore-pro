@@ -29,13 +29,51 @@ class DVFImporter:
     
     def clean_and_filter_data(self, df: pd.DataFrame):
         initial = len(df)
+
+        # Normaliser les noms de colonnes (anciens fichiers DVF 2014-2019 vs nouveaux 2020+)
+        column_mapping = {
+            # Anciens noms → nouveaux noms
+            'Id mutation': 'id_mutation',
+            'Date mutation': 'date_mutation',
+            'No voie': 'adresse_numero',
+            'Type de voie': 'type_voie',
+            'Voie': 'adresse_nom_voie',
+            'Code postal': 'code_postal',
+            'Commune': 'nom_commune',
+            'Code departement': 'code_departement',
+            'Type local': 'type_local',
+            'Surface reelle bati': 'surface_reelle_bati',
+            'Nombre pieces principales': 'nombre_pieces_principales',
+            'Valeur fonciere': 'valeur_fonciere',
+            # Garde aussi les nouveaux noms (pour compatibilité 2020+)
+            'id_mutation': 'id_mutation',
+            'date_mutation': 'date_mutation',
+            'adresse_numero': 'adresse_numero',
+            'adresse_nom_voie': 'adresse_nom_voie',
+            'code_postal': 'code_postal',
+            'nom_commune': 'nom_commune',
+            'code_departement': 'code_departement',
+            'type_local': 'type_local',
+            'surface_reelle_bati': 'surface_reelle_bati',
+            'nombre_pieces_principales': 'nombre_pieces_principales',
+            'valeur_fonciere': 'valeur_fonciere'
+        }
+
+        # Renommer les colonnes qui existent
+        df.rename(columns={k: v for k, v in column_mapping.items() if k in df.columns}, inplace=True)
+
+        # Filtrer par type de bien
+        if 'type_local' not in df.columns:
+            logger.error(f"Colonnes disponibles: {list(df.columns)[:20]}")
+            raise ValueError("Colonne 'type_local' introuvable après normalisation")
+
         df = df[df['type_local'].isin(['Maison', 'Appartement'])].copy()
         df = df[df['valeur_fonciere'].notna() & (df['valeur_fonciere'] > 0)]
-        
+
         cols = ['id_mutation', 'date_mutation', 'adresse_nom_voie', 'adresse_numero',
-                'code_postal', 'nom_commune', 'code_departement', 'type_local', 
+                'code_postal', 'nom_commune', 'code_departement', 'type_local',
                 'surface_reelle_bati', 'nombre_pieces_principales', 'valeur_fonciere']
-        
+
         df = df[[c for c in cols if c in df.columns]].copy()
         df.rename(columns={
             'adresse_nom_voie': 'adresse', 'nom_commune': 'commune',
