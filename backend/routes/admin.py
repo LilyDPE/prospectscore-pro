@@ -57,7 +57,7 @@ async def import_dvf(
         db.close()
 
 @router.post("/import-dvf-file")
-async def import_dvf_from_file(file: UploadFile = File(...)):
+async def import_dvf_from_file(file: UploadFile = File(...), debug: bool = False):
     """
     Import DVF depuis un fichier uploadé
 
@@ -65,6 +65,8 @@ async def import_dvf_from_file(file: UploadFile = File(...)):
     téléchargés depuis data.gouv.fr
 
     Formats acceptés: CSV, TXT, CSV.GZ, TXT.GZ
+
+    Paramètre debug=true pour voir un échantillon sans importer
     """
     from services.dvf_importer import DVFImporter
     from database import SessionLocal
@@ -117,6 +119,19 @@ async def import_dvf_from_file(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail=error_msg)
 
         logger.info(f"📊 {len(df)} lignes, {len(df.columns)} colonnes dans le fichier")
+
+        # Mode debug: retourner un échantillon sans importer
+        if debug:
+            sample = df.head(100).to_dict('records')
+            return {
+                "success": True,
+                "debug_mode": True,
+                "message": "Mode debug: échantillon des données (pas d'import)",
+                "total_lines": len(df),
+                "columns": list(df.columns),
+                "sample_type_local": df['Type local'].value_counts().head(10).to_dict() if 'Type local' in df.columns else {},
+                "sample_rows": sample[:5]
+            }
 
         # Utiliser l'importer existant
         importer = DVFImporter(db)
