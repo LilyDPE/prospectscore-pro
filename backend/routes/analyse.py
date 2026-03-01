@@ -162,7 +162,7 @@ async def analyze_by_cp(
 
         # ── Biens avec repeat_sale_flag calculé ───────────────────────────────
         conditions = ["t.code_postal = :cp"]
-        params: dict = {"cp": code_postal, "limit": limit * 4}
+        params: dict = {"cp": code_postal}
 
         if type_local:
             conditions.append("t.type_local = :type_local")
@@ -175,24 +175,29 @@ async def analyze_by_cp(
             params["surface_max"] = surface_max
 
         sql = text(f"""
-            SELECT
-                t.id, t.adresse, t.code_postal, t.commune, t.type_local,
-                t.surface_reelle, t.nombre_pieces, t.valeur_fonciere,
-                t.date_mutation, t.duree_detention_estimee,
-                t.propensity_score, t.propensity_raisons,
-                t.classe_dpe, t.latitude, t.longitude,
-                t.derniere_analyse_propension,
-                CASE WHEN nb_ventes.nb > 1 THEN 1 ELSE 0 END AS repeat_sale_flag,
-                nb_ventes.nb AS nb_ventes_adresse
-            FROM transactions_dvf t
-            LEFT JOIN (
-                SELECT adresse, code_postal, COUNT(*) as nb
-                FROM transactions_dvf
-                GROUP BY adresse, code_postal
-            ) nb_ventes ON nb_ventes.adresse = t.adresse AND nb_ventes.code_postal = t.code_postal
-            WHERE {" AND ".join(conditions)}
-            ORDER BY t.date_mutation DESC
-            LIMIT :limit
+            SELECT * FROM (
+                SELECT DISTINCT ON (t.adresse, t.code_postal)
+                    t.id, t.adresse, t.code_postal, t.commune, t.type_local,
+                    t.surface_reelle, t.nombre_pieces, t.valeur_fonciere,
+                    t.date_mutation, t.duree_detention_estimee,
+                    t.propensity_score, t.propensity_raisons,
+                    t.classe_dpe, t.latitude, t.longitude,
+                    t.derniere_analyse_propension,
+                    CASE WHEN nb_ventes.nb > 1 THEN 1 ELSE 0 END AS repeat_sale_flag,
+                    nb_ventes.nb AS nb_ventes_adresse
+                FROM transactions_dvf t
+                LEFT JOIN (
+                    SELECT adresse, code_postal, COUNT(*) as nb
+                    FROM transactions_dvf
+                    WHERE code_postal = :cp
+                    GROUP BY adresse, code_postal
+                ) nb_ventes ON nb_ventes.adresse = t.adresse
+                    AND nb_ventes.code_postal = t.code_postal
+                WHERE {" AND ".join(conditions)}
+                ORDER BY t.adresse, t.code_postal, t.date_mutation DESC
+            ) sub
+            ORDER BY sub.duree_detention_estimee DESC NULLS LAST
+            LIMIT 1000
         """)
 
         rows = db.execute(sql, params).fetchall()
