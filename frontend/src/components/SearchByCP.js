@@ -312,9 +312,6 @@ function MarketContextBanner({ ctx }) {
     </Paper>
   );
 }
-
-// ─── Composant Contexte Marché ───────────────────────────────────────────────
-function MarketContextBanner({ ctx }) {
   if (!ctx) return null;
   const isAlert = ctx.alerte;
   return (
@@ -376,9 +373,6 @@ function MarketContextBanner({ ctx }) {
     </Paper>
   );
 }
-
-// ─── Composant Contexte Marché ───────────────────────────────────────────────
-function MarketContextBanner({ ctx }) {
   if (!ctx) return null;
   const isAlert = ctx.alerte;
   return (
