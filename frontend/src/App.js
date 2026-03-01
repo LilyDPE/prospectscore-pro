@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
-
 // Components
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
@@ -9,8 +8,8 @@ import ProspectList from './components/ProspectList';
 import ProspectDetail from './components/ProspectDetail';
 import AddProspect from './components/AddProspect';
 import DPESearch from './components/DPESearch';
+import SearchByCP from './components/SearchByCP';
 import Layout from './components/Layout';
-
 // API
 import { api, setAuthToken } from './utils/api';
 
@@ -19,7 +18,6 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si un token existe
     const token = localStorage.getItem('token');
     if (token) {
       setAuthToken(token);
@@ -78,6 +76,7 @@ function App() {
         <Route path="/prospects/:id" element={<ProspectDetail />} />
         <Route path="/add-prospect" element={<AddProspect />} />
         <Route path="/dpe-search" element={<DPESearch />} />
+        <Route path="/search" element={<SearchByCP />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

@@ -23,6 +23,7 @@ import {
   People as PeopleIcon,
   Add as AddIcon,
   Search as SearchIcon,
+  TravelExplore as TravelExploreIcon,
   AccountCircle,
   Logout,
 } from '@mui/icons-material';
@@ -57,6 +58,7 @@ function Layout({ children, user, onLogout }) {
     { text: 'Prospects', icon: <PeopleIcon />, path: '/prospects' },
     { text: 'Ajouter Prospect', icon: <AddIcon />, path: '/add-prospect' },
     { text: 'Recherche DPE', icon: <SearchIcon />, path: '/dpe-search' },
+    { text: '🎯 Analyse CP', icon: <TravelExploreIcon />, path: '/search' },
   ];
 
   const drawer = (
