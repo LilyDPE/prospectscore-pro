@@ -270,7 +270,7 @@ export default function SearchByCP() {
       if (surfaceMax) params.append('surface_max', surfaceMax);
 
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_BASE}/api/analyze/${cpTrimmed}?${params}`, {
+      const res = await axios.get(`${API_BASE}/analyze/${cpTrimmed}?${params}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         timeout: 10000,
       });
@@ -290,7 +290,7 @@ export default function SearchByCP() {
     setRecomputing(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${API_BASE}/api/recompute-model?limit=5000`, {}, {
+      const res = await axios.post(`${API_BASE}/recompute-model?limit=5000`, {}, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         timeout: 300000, // 5 min max
       });
