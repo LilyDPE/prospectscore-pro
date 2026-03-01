@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "features": [
+    "tenure_days",
+    "repeat_sale_flag",
+    "last_price",
+    "last_p_m2",
+    "last_surf",
+    "last_pieces",
+    "is_maison",
+    "is_appart",
+    "month_sin",
+    "month_cos"
+  ],
+  "auc_train": 0.9014309646848392,
+  "auc_test": 0.8798600537762722,
+  "pr_test": 0.8242308799237987,
+  "n_train": 49047,
+  "n_test": 16349,
+  "pos_rate": 0.2541134014312802
+}
