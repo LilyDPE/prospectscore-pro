@@ -217,8 +217,18 @@ const buildColumns = () => [
   {
     field: 'duree_detention',
     headerName: 'Détention',
-    width: 100,
-    renderCell: (p) => p.value != null ? `${p.value} ans` : '—',
+    width: 115,
+    renderCell: (p) => {
+      if (p.value == null) return '—';
+      const yrs = p.value;
+      const color = yrs >= 8 ? '#c62828' : yrs >= 5 ? '#e65100' : '#555';
+      const badge = yrs >= 8 ? '🔴 ' : yrs >= 5 ? '🟠 ' : '';
+      return (
+        <Box sx={{ fontWeight: yrs >= 8 ? 800 : 400, color }}>
+          {badge}{yrs} ans
+        </Box>
+      );
+    },
   },
   { field: 'classe_dpe', headerName: 'DPE', width: 65 },
   {
@@ -229,7 +239,207 @@ const buildColumns = () => [
       <span style={{ fontSize: '0.78rem', color: '#555' }}>{p.value || '—'}</span>
     ),
   },
+  {
+    field: 'rang_cp',
+    headerName: 'Rang secteur',
+    width: 110,
+    renderCell: (p) => (
+      <span style={{ fontSize: '0.78rem', color: '#777', fontStyle: 'italic' }}>{p.value || '—'}</span>
+    ),
+  },
 ];
+
+// ─── Composant Contexte Marché ───────────────────────────────────────────────
+function MarketContextBanner({ ctx }) {
+  if (!ctx) return null;
+  const isAlert = ctx.alerte;
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        mb: 2, p: 2,
+        bgcolor: isAlert ? '#fff8e1' : '#f0f7ff',
+        border: `1px solid ${isAlert ? '#ffe082' : '#bbdefb'}`,
+        borderRadius: 2,
+      }}
+    >
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center' }}>
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Dynamisme marché</Typography>
+          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.3 }}>
+            {ctx.chaleur_emoji} {ctx.chaleur_marche}
+          </Typography>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Rotation propriétaires</Typography>
+          <Typography variant="body1" fontWeight={600}>{ctx.rotation}</Typography>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Ventes · 12 mois</Typography>
+          <Typography variant="body1" fontWeight={700}>{ctx.transactions_12m} transactions</Typography>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Ventes · 3 ans</Typography>
+          <Typography variant="body1" fontWeight={600}>{ctx.transactions_36m} transactions</Typography>
+        </Box>
+        {ctx.duree_moy_detention_ans != null && (
+          <>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Détention moyenne</Typography>
+              <Typography variant="body1" fontWeight={600}>{ctx.duree_moy_detention_ans} ans</Typography>
+            </Box>
+          </>
+        )}
+        {ctx.biens_revendus_plusieurs_fois > 0 && (
+          <>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Multi-ventes</Typography>
+              <Typography variant="body1" fontWeight={600}>{ctx.biens_revendus_plusieurs_fois} biens</Typography>
+            </Box>
+          </>
+        )}
+      </Box>
+      {isAlert && ctx.alerte_message && (
+        <Alert severity="warning" sx={{ mt: 1.5, py: 0.5 }} icon={false}>
+          {ctx.alerte_message}
+        </Alert>
+      )}
+    </Paper>
+  );
+}
+
+// ─── Composant Contexte Marché ───────────────────────────────────────────────
+function MarketContextBanner({ ctx }) {
+  if (!ctx) return null;
+  const isAlert = ctx.alerte;
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        mb: 2, p: 2,
+        bgcolor: isAlert ? '#fff8e1' : '#f0f7ff',
+        border: `1px solid ${isAlert ? '#ffe082' : '#bbdefb'}`,
+        borderRadius: 2,
+      }}
+    >
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center' }}>
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Dynamisme marché</Typography>
+          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.3 }}>
+            {ctx.chaleur_emoji} {ctx.chaleur_marche}
+          </Typography>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Rotation propriétaires</Typography>
+          <Typography variant="body1" fontWeight={600}>{ctx.rotation}</Typography>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Ventes · 12 mois</Typography>
+          <Typography variant="body1" fontWeight={700}>{ctx.transactions_12m} transactions</Typography>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Ventes · 3 ans</Typography>
+          <Typography variant="body1" fontWeight={600}>{ctx.transactions_36m} transactions</Typography>
+        </Box>
+        {ctx.duree_moy_detention_ans != null && (
+          <>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Détention moyenne</Typography>
+              <Typography variant="body1" fontWeight={600}>{ctx.duree_moy_detention_ans} ans</Typography>
+            </Box>
+          </>
+        )}
+        {ctx.biens_revendus_plusieurs_fois > 0 && (
+          <>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Multi-ventes</Typography>
+              <Typography variant="body1" fontWeight={600}>{ctx.biens_revendus_plusieurs_fois} biens</Typography>
+            </Box>
+          </>
+        )}
+      </Box>
+      {isAlert && ctx.alerte_message && (
+        <Alert severity="warning" sx={{ mt: 1.5, py: 0.5 }} icon={false}>
+          {ctx.alerte_message}
+        </Alert>
+      )}
+    </Paper>
+  );
+}
+
+// ─── Composant Contexte Marché ───────────────────────────────────────────────
+function MarketContextBanner({ ctx }) {
+  if (!ctx) return null;
+  const isAlert = ctx.alerte;
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        mb: 2, p: 2,
+        bgcolor: isAlert ? '#fff8e1' : '#f0f7ff',
+        border: `1px solid ${isAlert ? '#ffe082' : '#bbdefb'}`,
+        borderRadius: 2,
+      }}
+    >
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center' }}>
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Dynamisme marché</Typography>
+          <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.3 }}>
+            {ctx.chaleur_emoji} {ctx.chaleur_marche}
+          </Typography>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Rotation propriétaires</Typography>
+          <Typography variant="body1" fontWeight={600}>{ctx.rotation}</Typography>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Ventes · 12 mois</Typography>
+          <Typography variant="body1" fontWeight={700}>{ctx.transactions_12m} transactions</Typography>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block">Ventes · 3 ans</Typography>
+          <Typography variant="body1" fontWeight={600}>{ctx.transactions_36m} transactions</Typography>
+        </Box>
+        {ctx.duree_moy_detention_ans != null && (
+          <>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Détention moyenne</Typography>
+              <Typography variant="body1" fontWeight={600}>{ctx.duree_moy_detention_ans} ans</Typography>
+            </Box>
+          </>
+        )}
+        {ctx.biens_revendus_plusieurs_fois > 0 && (
+          <>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" display="block">Multi-ventes</Typography>
+              <Typography variant="body1" fontWeight={600}>{ctx.biens_revendus_plusieurs_fois} biens</Typography>
+            </Box>
+          </>
+        )}
+      </Box>
+      {isAlert && ctx.alerte_message && (
+        <Alert severity="warning" sx={{ mt: 1.5, py: 0.5 }} icon={false}>
+          {ctx.alerte_message}
+        </Alert>
+      )}
+    </Paper>
+  );
+}
 
 // ─── Composant principal ───────────────────────────────────────────────────────
 export default function SearchByCP() {
@@ -507,6 +717,15 @@ export default function SearchByCP() {
               Export CSV
             </Button>
           </Box>
+
+          {/* Contexte marché */}
+          <MarketContextBanner ctx={data.market_context} />
+
+          {/* Contexte marché */}
+          <MarketContextBanner ctx={data.market_context} />
+
+          {/* Contexte marché */}
+          <MarketContextBanner ctx={data.market_context} />
 
           {/* Carte */}
           <Paper elevation={2} sx={{ mb: 2, overflow: 'hidden', borderRadius: 2 }}>
