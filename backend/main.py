@@ -656,3 +656,7 @@ app.include_router(commerciaux_router)
 
 from routes.commercial_interface import router as commercial_interface_router
 app.include_router(commercial_interface_router)
+
+# ==================== ANALYSE ROUTES ====================
+from routes.analyse import router as analyse_router
+app.include_router(analyse_router)
