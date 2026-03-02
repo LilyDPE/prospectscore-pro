@@ -33,6 +33,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import axios from 'axios';
+import ScoreExplanationPanel from './ScoreExplanationPanel';
 
 // ─── Config ────────────────────────────────────────────────────────────────────
 const API_BASE = process.env.REACT_APP_API_URL || '';
@@ -525,79 +526,73 @@ export default function SearchByCP() {
             </Box>
           </Paper>
 
-          {/* Détail du bien sélectionné */}
-          {selectedBien && (
-            <Paper sx={{ mb: 2, p: 2, bgcolor: '#f8faff', border: '1px solid #dce8ff', borderRadius: 2 }} elevation={0}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={700}>
-                    📌 {selectedBien.adresse} — {selectedBien.commune}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {selectedBien.type_local}
-                    {selectedBien.surface ? ` · ${selectedBien.surface} m²` : ''}
-                    {selectedBien.pieces ? ` · ${selectedBien.pieces} pièces` : ''}
-                    {selectedBien.classe_dpe ? ` · DPE ${selectedBien.classe_dpe}` : ''}
-                  </Typography>
-                  {selectedBien.propensity_timeframe && (
-                    <Typography variant="body2" sx={{ mt: 0.5, fontStyle: 'italic', color: '#555' }}>
-                      {selectedBien.propensity_timeframe}
-                    </Typography>
-                  )}
-                </Box>
-                <Button size="small" onClick={() => setSelectedBien(null)} sx={{ minWidth: 0 }}>✕</Button>
-              </Box>
-              {selectedBien.propensity_raisons?.length > 0 && (
-                <Box sx={{ mt: 1.5 }}>
-                  <Typography variant="caption" fontWeight={600} color="text.secondary" display="block" gutterBottom>
-                    Signaux détectés :
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                    {selectedBien.propensity_raisons.map((r, i) => (
-                      <Typography key={i} variant="body2">• {r}</Typography>
-                    ))}
-                  </Box>
-                </Box>
-              )}
-              {selectedBien.derniere_analyse && (
-                <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: 'block' }}>
-                  Score calculé le {new Date(selectedBien.derniere_analyse).toLocaleDateString('fr-FR')}
-                </Typography>
-              )}
-            </Paper>
-          )}
+          {/* Layout principal : tableau + panneau d'explication côte à côte */}
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
 
-          {/* Tableau */}
-          <Paper elevation={2} sx={{ borderRadius: 2 }}>
-            <DataGrid
-              rows={data.biens}
-              columns={columns}
-              pageSize={25}
-              rowsPerPageOptions={[25, 50, 100]}
-              autoHeight
-              disableSelectionOnClick
-              onRowClick={(params) => setSelectedBien(params.row)}
-              initialState={{
-                sorting: {
-                  sortModel: [{ field: 'prob_sell_6m', sort: 'desc' }],
-                },
-              }}
-              sx={{
-                border: 'none',
-                '& .MuiDataGrid-row:hover': {
-                  backgroundColor: '#eef2ff',
-                  cursor: 'pointer',
-                },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#f5f5f5',
-                  fontWeight: 700,
-                },
-                '& .MuiDataGrid-cell': {
-                  borderBottom: '1px solid #f0f0f0',
-                },
-              }}
-            />
-          </Paper>
+            {/* Tableau — rétrécit quand le panneau est ouvert */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Paper elevation={2} sx={{ borderRadius: 2 }}>
+                <DataGrid
+                  rows={data.biens}
+                  columns={columns}
+                  pageSize={25}
+                  rowsPerPageOptions={[25, 50, 100]}
+                  autoHeight
+                  disableSelectionOnClick
+                  onRowClick={(params) => setSelectedBien(params.row)}
+                  getRowClassName={(params) =>
+                    selectedBien && params.row.id === selectedBien.id ? 'selected-row' : ''
+                  }
+                  initialState={{
+                    sorting: {
+                      sortModel: [{ field: 'prob_sell_6m', sort: 'desc' }],
+                    },
+                  }}
+                  sx={{
+                    border: 'none',
+                    '& .MuiDataGrid-row:hover': {
+                      backgroundColor: '#eef2ff',
+                      cursor: 'pointer',
+                    },
+                    '& .MuiDataGrid-row.selected-row': {
+                      backgroundColor: '#eff6ff',
+                      borderLeft: '3px solid #1976d2',
+                    },
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: '#f5f5f5',
+                      fontWeight: 700,
+                    },
+                    '& .MuiDataGrid-cell': {
+                      borderBottom: '1px solid #f0f0f0',
+                    },
+                  }}
+                />
+              </Paper>
+            </Box>
+
+            {/* Panneau d'explication du score */}
+            {selectedBien && (
+              <Paper
+                elevation={3}
+                sx={{
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  width: 380,
+                  flexShrink: 0,
+                  position: { xs: 'static', lg: 'sticky' },
+                  top: { lg: 16 },
+                  maxHeight: { lg: 'calc(100vh - 180px)' },
+                  overflowY: 'auto',
+                }}
+              >
+                <ScoreExplanationPanel
+                  bien={selectedBien}
+                  secteurStats={data?.stats}
+                  onClose={() => setSelectedBien(null)}
+                />
+              </Paper>
+            )}
+          </Box>
         </>
       )}
 

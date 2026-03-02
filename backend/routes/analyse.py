@@ -126,6 +126,7 @@ async def analyze_by_cp(
             })
 
         # Stats rapides
+        durees = [b["duree_detention"] for b in biens if b["duree_detention"] is not None]
         stats = {
             "urgent": sum(1 for b in biens if b["contact_priority"] == "URGENT"),
             "high": sum(1 for b in biens if b["contact_priority"] == "HIGH"),
@@ -133,6 +134,9 @@ async def analyze_by_cp(
             "low": sum(1 for b in biens if b["contact_priority"] == "LOW"),
             "avec_coords": sum(1 for b in biens if b["latitude"] and b["longitude"]),
             "scoring_ok": sum(1 for b in biens if b["propensity_score"] and b["propensity_score"] > 0),
+            # Contexte secteur — utilisé par le panneau d'explication des scores
+            "ventes_12m": len(biens),
+            "detention_moy": round(sum(durees) / len(durees), 1) if durees else None,
         }
 
         logger.info(f"✅ Analyze CP={code_postal} → {len(biens)} biens (URGENT={stats['urgent']}, HIGH={stats['high']})")
