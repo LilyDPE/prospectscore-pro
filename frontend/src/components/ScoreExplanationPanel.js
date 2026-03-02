@@ -334,10 +334,12 @@ export default function ScoreExplanationPanel({ bien, secteurStats, onClose }) {
                 ) : (
                   <Typography variant="body2" fontWeight={600} color="text.secondary">Non renseigné</Typography>
                 )}
-                <Tooltip title="Consulter le DPE officiel sur l'observatoire ADEME" placement="top" arrow>
+                <Tooltip title="Recherche pré-remplie sur l'observatoire ADEME" placement="top" arrow>
                   <Box
                     component="a"
-                    href={ADEME_DPE_URL}
+                    href={`${ADEME_DPE_URL}?adresse=${encodeURIComponent(
+                      [bien.adresse, bien.code_postal, bien.commune].filter(Boolean).join(' ')
+                    )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{
@@ -353,6 +355,25 @@ export default function ScoreExplanationPanel({ bien, secteurStats, onClose }) {
                   >
                     Voir DPE ADEME
                     <OpenInNewIcon sx={{ fontSize: '0.75rem' }} />
+                  </Box>
+                </Tooltip>
+                <Tooltip title="Copier l'adresse" placement="top" arrow>
+                  <Box
+                    component="span"
+                    onClick={() => navigator.clipboard.writeText(
+                      [bien.adresse, bien.code_postal, bien.commune].filter(Boolean).join(' ')
+                    )}
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      fontSize: '0.7rem',
+                      color: '#9ca3af',
+                      cursor: 'pointer',
+                      ml: 0.5,
+                      '&:hover': { color: '#374151' },
+                    }}
+                  >
+                    📋
                   </Box>
                 </Tooltip>
               </Box>
