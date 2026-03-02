@@ -25,6 +25,9 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 // URL de l'observatoire DPE officiel ADEME — recherche par bien
 const ADEME_DPE_URL = 'https://observatoire-dpe-audit.ademe.fr/pub/recherche-bien';
 
+// URL de l'app SmartBoitage 2A Immobilier — boîtage & prospection terrain
+const SMARTBOITAGE_URL = 'https://lilydpe.github.io/2A-Immo-Prospection/';
+
 // ─── Config priorité ────────────────────────────────────────────────────────
 const PRIORITY_CONFIG = {
   URGENT: { color: '#c62828', bg: '#ffebee', label: 'URGENT', barColor: '#c62828' },
@@ -374,6 +377,33 @@ export default function ScoreExplanationPanel({ bien, secteurStats, onClose }) {
             </Typography>
           </Box>
         )}
+
+        {/* ── Lien SmartBoitage ── */}
+        <Box
+          component="a"
+          href={SMARTBOITAGE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1,
+            p: 1.5,
+            bgcolor: '#0f172a',
+            color: 'white',
+            borderRadius: 2,
+            textDecoration: 'none',
+            fontWeight: 600,
+            fontSize: '0.82rem',
+            transition: 'background 0.15s',
+            '&:hover': { bgcolor: '#1e293b' },
+          }}
+        >
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1 }}>📬</Typography>
+          Boîter ce secteur avec SmartBoitage
+          <OpenInNewIcon sx={{ fontSize: '0.8rem', opacity: 0.7 }} />
+        </Box>
 
         {/* ── Date dernière analyse ── */}
         {bien.derniere_analyse && (
