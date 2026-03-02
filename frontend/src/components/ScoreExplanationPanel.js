@@ -20,6 +20,10 @@ import {
   Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+
+// URL de l'observatoire DPE officiel ADEME — recherche par bien
+const ADEME_DPE_URL = 'https://observatoire-dpe-audit.ademe.fr/pub/recherche-bien';
 
 // ─── Config priorité ────────────────────────────────────────────────────────
 const PRIORITY_CONFIG = {
@@ -292,9 +296,8 @@ export default function ScoreExplanationPanel({ bien, secteurStats, onClose }) {
             {[
               { label: 'Dernière vente', value: bien.date_mutation || '—' },
               { label: 'Détention', value: bien.duree_detention != null ? `${bien.duree_detention} ans` : '—' },
-              { label: 'Prix d\'achat', value: bien.prix ? `${(bien.prix / 1000).toFixed(0)}k€` : '—' },
+              { label: "Prix d'achat", value: bien.prix ? `${(bien.prix / 1000).toFixed(0)}k€` : '—' },
               { label: '€/m²', value: bien.prix_m2 ? `${Number(bien.prix_m2).toFixed(0)} €` : '—' },
-              { label: 'DPE', value: bien.classe_dpe || 'Non renseigné' },
               { label: 'Score brut', value: bien.propensity_score != null ? `${bien.propensity_score}/100` : '—' },
             ].map(({ label, value }) => (
               <Box key={label}>
@@ -306,6 +309,51 @@ export default function ScoreExplanationPanel({ bien, secteurStats, onClose }) {
                 </Typography>
               </Box>
             ))}
+
+            {/* DPE avec lien vers l'observatoire ADEME */}
+            <Box sx={{ gridColumn: '1 / -1' }}>
+              <Typography variant="caption" color="text.disabled" sx={{ textTransform: 'uppercase', fontSize: '0.65rem' }}>
+                DPE
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.25 }}>
+                {bien.classe_dpe ? (
+                  <Chip
+                    label={`Classe ${bien.classe_dpe}`}
+                    size="small"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '0.7rem',
+                      height: 20,
+                      bgcolor: ['F', 'G'].includes(bien.classe_dpe) ? '#fee2e2' : ['D', 'E'].includes(bien.classe_dpe) ? '#fef9c3' : '#dcfce7',
+                      color:   ['F', 'G'].includes(bien.classe_dpe) ? '#b91c1c' : ['D', 'E'].includes(bien.classe_dpe) ? '#854d0e' : '#15803d',
+                    }}
+                  />
+                ) : (
+                  <Typography variant="body2" fontWeight={600} color="text.secondary">Non renseigné</Typography>
+                )}
+                <Tooltip title="Consulter le DPE officiel sur l'observatoire ADEME" placement="top" arrow>
+                  <Box
+                    component="a"
+                    href={ADEME_DPE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.25,
+                      fontSize: '0.7rem',
+                      color: '#1976d2',
+                      textDecoration: 'none',
+                      fontWeight: 500,
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+                  >
+                    Voir DPE ADEME
+                    <OpenInNewIcon sx={{ fontSize: '0.75rem' }} />
+                  </Box>
+                </Tooltip>
+              </Box>
+            </Box>
           </Box>
         </Box>
 

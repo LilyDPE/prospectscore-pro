@@ -19,10 +19,6 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  People as PeopleIcon,
-  Add as AddIcon,
-  Search as SearchIcon,
   TravelExplore as TravelExploreIcon,
   AccountCircle,
   Logout,
@@ -54,10 +50,6 @@ function Layout({ children, user, onLogout }) {
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Prospects', icon: <PeopleIcon />, path: '/prospects' },
-    { text: 'Ajouter Prospect', icon: <AddIcon />, path: '/add-prospect' },
-    { text: 'Recherche DPE', icon: <SearchIcon />, path: '/dpe-search' },
     { text: '🎯 Analyse CP', icon: <TravelExploreIcon />, path: '/search' },
   ];
 

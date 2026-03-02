@@ -3,11 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 // Components
 import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-import ProspectList from './components/ProspectList';
-import ProspectDetail from './components/ProspectDetail';
-import AddProspect from './components/AddProspect';
-import DPESearch from './components/DPESearch';
 import SearchByCP from './components/SearchByCP';
 import Layout from './components/Layout';
 // API
@@ -71,13 +66,8 @@ function App() {
   return (
     <Layout user={user} onLogout={handleLogout}>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/prospects" element={<ProspectList />} />
-        <Route path="/prospects/:id" element={<ProspectDetail />} />
-        <Route path="/add-prospect" element={<AddProspect />} />
-        <Route path="/dpe-search" element={<DPESearch />} />
         <Route path="/search" element={<SearchByCP />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/search" replace />} />
       </Routes>
     </Layout>
   );
