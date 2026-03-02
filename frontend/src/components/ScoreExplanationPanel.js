@@ -25,7 +25,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 // URL de l'observatoire DPE officiel ADEME — recherche par bien
 const ADEME_DPE_URL = 'https://observatoire-dpe-audit.ademe.fr/pub/recherche-bien';
 
-// URL de l'app SmartBoitage 2A Immobilier — boîtage & prospection terrain
+// URL de l'app 2A Immo Prospection — boîtage & prospection terrain
 const SMARTBOITAGE_URL = 'https://lilydpe.github.io/2A-Immo-Prospection/';
 
 // ─── Config priorité ────────────────────────────────────────────────────────
@@ -401,7 +401,7 @@ export default function ScoreExplanationPanel({ bien, secteurStats, onClose }) {
           }}
         >
           <Typography sx={{ fontSize: '1rem', lineHeight: 1 }}>📬</Typography>
-          Boîter ce secteur avec SmartBoitage
+          Ouvrir 2A Immo Prospection
           <OpenInNewIcon sx={{ fontSize: '0.8rem', opacity: 0.7 }} />
         </Box>
 
